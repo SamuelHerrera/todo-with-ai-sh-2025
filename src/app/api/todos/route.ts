@@ -102,9 +102,8 @@ export async function POST(request: NextRequest) {
     // Trigger n8n workflow for task enhancement (non-blocking)
     try {
       const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL;
-      console.log('n8nWebhookUrl', n8nWebhookUrl)
       if (n8nWebhookUrl) {
-        fetch(n8nWebhookUrl, {
+        await fetch(n8nWebhookUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
