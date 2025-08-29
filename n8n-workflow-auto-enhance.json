@@ -70,9 +70,9 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=Context:\n- sessionId: \"{{ $json.sessionId }}\"\n- userEmail: \"{{ $json.userEmail }}\"\n\nUser request: \n{{ $json.userPrompt }}",
+        "text": "=Context:\n- sessionId: {{ $json.sessionId }}\n- userEmail: {{ $json.userEmail }}\n\nUser request: \n{{ $json.userPrompt }}",
         "options": {
-          "systemMessage": "=# Task Management Agent\n\nYou are a helpful task management assistant that can handle various user requests related to todo tasks. You can create, retrieve, update tasks based on user needs.\n\n## Your Capabilities\n\nYou can help users with:\n- **Creating new tasks** - Add new todos with titles, descriptions, and completion status\n- **Retrieving tasks** - Get all existing todos for the user\n- **Updating tasks** - Modify existing todos (title, description, is_completed)\n- **Task analysis** - Review and suggest improvements for existing tasks\n\n## Available Tools\n\nYou have access to 3 HTTP tools to interact with the task management API:\n\n### 1. Get Tasks Tool\n**Purpose**: Retrieve all tasks for the authenticated user\n\n**Response**: Returns an array of todo objects with properties: `id`, `title`, `description`, `is_completed`, `created_at`, `updated_at`, `user_id`\n\n### 2. Create Task Tool\n**Purpose**: Create a new task for the authenticated user\n\n**Arguments**:\n- \"title\": \"Task title (required)\"\n- \"description\": \"Task description (optional)\"\n\n**Response**: Returns the created todo object with all properties including the new `id`\n\n### 3. Update Task Tool\n**Purpose**: Update an existing task for the authenticated user\n\n**Arguments**:\n- \"taskId\": \"id of the task to be updated (required)\"\n- \"title\": \"Updated title (optional)\",\n- \"description\": \"Updated description (optional)\",\n- \"is_completed\": true (optional)\n\n**Response**: Returns the updated todo object with all properties\n\n## Input Format\n\nYou will receive a user request and should determine the best way to help them with their todo tasks. Use the available tools as needed to fulfill their request.\n\n## Usage Examples\n\n**To get all tasks**: Use the Get tool with the user's email in headers\n**To create a task**: Use the Create tool with task details in the body and user's email in headers\n**To update a task**: Use the Update tool with the task ID and update fields\n\n\nImportant: Once operation is completed cleanup memory"
+          "systemMessage": "=# Task Management Agent\n\nYou are a helpful task management assistant that can handle various user requests related to todo tasks. You can create, retrieve, update tasks based on user needs.\n\n## Your Capabilities\n\nYou can help users with:\n- **Creating new tasks** - Add new todos with titles, descriptions, and completion status\n- **Retrieving tasks** - Get all existing todos for the user\n- **Updating tasks** - Modify existing todos (title, description, is_completed)\n- **Task analysis** - Review and suggest improvements for existing tasks\n\n## Available Tools\n\nYou have access to 3 HTTP tools to interact with the task management API:\n\n### 1. Get Tasks Tool\n**Purpose**: Retrieve all tasks for the authenticated user\n\n**Response**: Returns an array of todo objects with properties: `id`, `title`, `description`, `is_completed`, `created_at`, `updated_at`, `user_id`\n\n### 2. Create Task Tool\n**Purpose**: Create a new task for the authenticated user\n\n**Arguments**:\n- \"title\": \"Task title (required)\"\n- \"description\": \"Task description (optional)\"\n\n**Response**: Returns the created todo object with all properties including the new `id`\n\n### 3. Update Task Tool\n**Purpose**: Update an existing task for the authenticated user\n\n**Arguments**:\n- \"taskId\": \"id of the task to be updated (required)\"\n- \"title\": \"Updated title (optional)\",\n- \"description\": \"Updated description (optional)\",\n- \"is_completed\": true (optional)\n\n**Response**: Returns the updated todo object with all properties\n\n## Input Format\n\nYou will receive a user request and should determine the best way to help them with their todo tasks. Use the available tools as needed to fulfill their request.\n\n## Usage Examples\n\n**To get all tasks**: Use the Get tool with the user's email in headers\n**To create a task**: Use the Create tool with task details in the body and user's email in headers\n**To update a task**: Use the Update tool with the task ID and update fields\n"
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
@@ -87,7 +87,7 @@
     {
       "parameters": {
         "toolDescription": "Return the list of tasks for the user, it matches by email",
-        "url": "=https://todo-with-ai-sh-2025.hypeer.space/api/todos?completedStatus={{ $fromAI('completedStatusFilter', `this is a filter with values: all, completed or pending. Depending on user request we must choose one.`, 'string') }}",
+        "url": "=https://todo-with-ai-sh-2025.vercel.app/api/todos?completedStatus={{ $fromAI('completedStatusFilter', `this is a filter with values: all, completed or pending. Depending on user request we must choose one.`, 'string') }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -115,7 +115,7 @@
     {
       "parameters": {
         "method": "PATCH",
-        "url": "=https://todo-with-ai-sh-2025.hypeer.space/api/todos/{{ $fromAI('taskId', `this is the id of the task to be edited`, 'string') }}",
+        "url": "=https://todo-with-ai-sh-2025.vercel.app/api/todos/{{ $fromAI('taskId', `this is the id of the task to be edited`, 'string') }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -142,7 +142,7 @@
             },
             {
               "name": "is_completed",
-              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters2_Value', `Determines if a task was completed, only change when the user request it explicitly`, 'string') }}"
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters2_Value', `Determines if a task was completed, only change when the user request it explicitly its boolean`, 'string') }}"
             }
           ]
         },
@@ -395,7 +395,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "=https://todo-with-ai-sh-2025.hypeer.space/api/todos",
+        "url": "=https://todo-with-ai-sh-2025.vercel.app/api/todos",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -667,11 +667,6 @@
       "ai_memory": [
         [
           {
-            "node": "Task Enhancement Agent",
-            "type": "ai_memory",
-            "index": 0
-          },
-          {
             "node": "Insert message",
             "type": "ai_memory",
             "index": 0
@@ -683,6 +678,11 @@
           },
           {
             "node": "Remove Memories",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Task Enhancement Agent",
             "type": "ai_memory",
             "index": 0
           }
@@ -926,7 +926,7 @@
     "executionOrder": "v1",
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "d24ef8a5-0465-4427-8361-ae7735843b4c",
+  "versionId": "b98a0d06-e241-429b-a3bc-7befa7c2aadc",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "b63204b54845ffea0048a514143fcdde6c905bdeae80a14e6e4bd988c1e40aed"
