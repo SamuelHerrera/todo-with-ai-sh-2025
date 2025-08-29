@@ -1,0 +1,936 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Hi there! 👋\nIm Todo tasker agent, how can I assist you?",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1424,
+        -432
+      ],
+      "id": "c01338bc-2bf3-40a7-9421-6e721161ca55",
+      "name": "When chat message received",
+      "webhookId": "df8223bf-119c-44d5-9bbf-f74ae26828e8"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=$json.sessionId",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        304,
+        -80
+      ],
+      "id": "d24286ef-a638-4bdf-a7b3-107c71147d9b",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "f0187fff-5f4f-42b5-82d8-5e236eedc9d5",
+              "leftValue": "={{ $json.userEmail || '' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.1,
+      "position": [
+        688,
+        -896
+      ],
+      "id": "be3fbdf1-72c7-47e8-8b42-e781ff40d17f",
+      "name": "Check if email exists"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Context:\n- sessionId: \"{{ $json.sessionId }}\"\n- userEmail: \"{{ $json.userEmail }}\"\n\nUser request: \n{{ $json.userPrompt }}",
+        "options": {
+          "systemMessage": "=# Task Management Agent\n\nYou are a helpful task management assistant that can handle various user requests related to todo tasks. You can create, retrieve, update tasks based on user needs.\n\n## Your Capabilities\n\nYou can help users with:\n- **Creating new tasks** - Add new todos with titles, descriptions, and completion status\n- **Retrieving tasks** - Get all existing todos for the user\n- **Updating tasks** - Modify existing todos (title, description, is_completed)\n- **Task analysis** - Review and suggest improvements for existing tasks\n\n## Available Tools\n\nYou have access to 3 HTTP tools to interact with the task management API:\n\n### 1. Get Tasks Tool\n**Purpose**: Retrieve all tasks for the authenticated user\n\n**Response**: Returns an array of todo objects with properties: `id`, `title`, `description`, `is_completed`, `created_at`, `updated_at`, `user_id`\n\n### 2. Create Task Tool\n**Purpose**: Create a new task for the authenticated user\n\n**Arguments**:\n- \"title\": \"Task title (required)\"\n- \"description\": \"Task description (optional)\"\n\n**Response**: Returns the created todo object with all properties including the new `id`\n\n### 3. Update Task Tool\n**Purpose**: Update an existing task for the authenticated user\n\n**Arguments**:\n- \"taskId\": \"id of the task to be updated (required)\"\n- \"title\": \"Updated title (optional)\",\n- \"description\": \"Updated description (optional)\",\n- \"is_completed\": true (optional)\n\n**Response**: Returns the updated todo object with all properties\n\n## Input Format\n\nYou will receive a user request and should determine the best way to help them with their todo tasks. Use the available tools as needed to fulfill their request.\n\n## Usage Examples\n\n**To get all tasks**: Use the Get tool with the user's email in headers\n**To create a task**: Use the Create tool with task details in the body and user's email in headers\n**To update a task**: Use the Update tool with the task ID and update fields\n\n\nImportant: Once operation is completed cleanup memory"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1328,
+        -592
+      ],
+      "id": "37144d72-46e2-47ac-b7a6-910410d1b3f5",
+      "name": "Task Enhancement Agent"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Return the list of tasks for the user, it matches by email",
+        "url": "=https://todo-with-ai-sh-2025.hypeer.space/api/todos?completedStatus={{ $fromAI('completedStatusFilter', `this is a filter with values: all, completed or pending. Depending on user request we must choose one.`, 'string') }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.userEmail || '' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1648,
+        -160
+      ],
+      "id": "e121019c-ed63-4f9f-ab72-6c802974bc97",
+      "name": "Get Todos Tool"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://todo-with-ai-sh-2025.hypeer.space/api/todos/{{ $fromAI('taskId', `this is the id of the task to be edited`, 'string') }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.userEmail || '' }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "title",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', `Title of the task`, 'string') }}"
+            },
+            {
+              "name": "description",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters1_Value', `Task detailed description `, 'string') }}"
+            },
+            {
+              "name": "is_completed",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters2_Value', `Determines if a task was completed, only change when the user request it explicitly`, 'string') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1472,
+        -160
+      ],
+      "id": "5320d07d-9c89-49f4-8074-494e7ac7539d",
+      "name": "Update Todo Tool"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "f0187fff-5f4f-42b5-82d8-5e236eedc9d5",
+              "leftValue": "={{ ($json.messages.join('\\n').match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-z]{2,}/g) || []).length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.1,
+      "position": [
+        416,
+        -656
+      ],
+      "id": "b8168d77-ae73-4c07-9611-e13e4bbfaef3",
+      "name": "Does user input contains an email?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4e699cf6-fa23-4be2-a473-d8035b8111d7",
+              "name": "output",
+              "value": "={{ $json.chatInput }}",
+              "type": "string"
+            },
+            {
+              "id": "b8c30664-0b6d-4321-a5e4-dfb5cf32603b",
+              "name": "sessionId",
+              "value": "={{ $json.sessionId }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1200,
+        -432
+      ],
+      "id": "d2b841ed-5796-475c-812c-e6cf00b0e8e6",
+      "name": "Map to output"
+    },
+    {
+      "parameters": {
+        "text": "=Text to extract:\n{{ $json.output || '' }}\nsessionId: {{ $json.sessionId || '' }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "userEmail",
+              "description": "First email provided"
+            },
+            {
+              "name": "userPrompt",
+              "description": "What the user wants to do"
+            },
+            {
+              "name": "sessionId",
+              "description": "sessionId provided in the prompt (do not confuse with task id which is also a uuid)"
+            },
+            {
+              "name": "isAForgetCommand",
+              "type": "boolean",
+              "description": "this will be false by default unless the user request to cleanup, forget, delete or similar the memory if this is the case the value should be true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        -944,
+        -432
+      ],
+      "id": "cdf84384-829f-4da0-9043-17c12cd83591",
+      "name": "Information Extractor"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "messages": {
+          "messageValues": [
+            {
+              "type": "user",
+              "message": "={ \n  \"userEmail\": \"{{ $json.output?.userEmail || '' }}\",\n  \"sessionId\": \"{{ $json.output?.sessionId || '' }}\",\n  \"userPrompt\": \"{{ $json.output?.userPrompt || '' }}\"\n}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -464,
+        -448
+      ],
+      "id": "cd183cd1-6561-4969-a260-79edaf403039",
+      "name": "Insert message"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -112,
+        -448
+      ],
+      "id": "7c3bba5f-6361-438b-9824-636b9a456450",
+      "name": "Get messages"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "  {\n    \"output\": \"Before continue please provide an email to register this chat\"\n  }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        720,
+        -640
+      ],
+      "id": "bd32cf9e-67fc-44a0-9f07-af44f61c0f0d",
+      "name": "Ask for email"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "\nlet sessionId = '';\nlet userEmail = '';\nlet userPrompt = '';\nlet error = undefined;\nconst messages = ($json.messages || []).map((input)=> {\n  const raw = input.system || input.human || input.ai;\n  try {\n    const asJson = JSON.parse(raw);\n    if(asJson['userEmail'] && asJson['userEmail'].includes('@')) userEmail = asJson['userEmail'];\n    if(asJson['userPrompt']) userPrompt = asJson['userPrompt'];\n    if(asJson['sessionId']) sessionId = asJson['sessionId'];\n  } catch (e) {\n    error = e.message;\n  }\n  return raw;\n});\n\nreturn {\n  sessionId,\n  userEmail,\n  userPrompt,\n  messages,\n  error\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        176,
+        -896
+      ],
+      "id": "c2a9f7d5-f09c-4785-8814-dbde8c7882dd",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "f0187fff-5f4f-42b5-82d8-5e236eedc9d5",
+              "leftValue": "={{ $json.messages.filter(item => {\n  let asJson = undefined;\n  try {\n    asJson = JSON.parse(item);\n  } catch (e) {\n    return false;\n  }\n  return !!asJson['userPrompt'];\n  \n}) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.1,
+      "position": [
+        992,
+        -912
+      ],
+      "id": "c8fefe48-cd6c-48f5-bcd8-371346927e9f",
+      "name": "Check if user intention is defined"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "  {\n    \"output\": \"How can i help you?. Try asking for the available Tasker actions\"\n  }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1312,
+        -896
+      ],
+      "id": "d77646b9-dee8-4ad4-a97a-ee6b7df82447",
+      "name": "Ask for intention"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-3.5-turbo",
+          "mode": "list",
+          "cachedResultName": "gpt-3.5-turbo"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -384,
+        -80
+      ],
+      "id": "8aba0dcb-7f92-43dc-bf32-91af73dc147a",
+      "name": "OpenAI Pro",
+      "credentials": {
+        "openAiApi": {
+          "id": "avs482g0IHmitdkn",
+          "name": "OpenAi Pro"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://todo-with-ai-sh-2025.hypeer.space/api/todos",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.userEmail || '' }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "title",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', `The title of the task, provided by the user`, 'string') }}"
+            },
+            {
+              "name": "description",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters1_Value', `The definition of the task provided by the user`, 'string') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1296,
+        -160
+      ],
+      "id": "71eff434-c341-453e-82be-3bc0b2ffc642",
+      "name": "Create Task Tool"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4e699cf6-fa23-4be2-a473-d8035b8111d7",
+              "name": "output",
+              "value": "=My email is {{ $json.body.userEmail }}, plase update task called: '{{ $json.body.title }}' with id {{ $json.body.id }} to adjust the title (if needed). Misspelled words, incorrect syntax, clear ideas, adding more contextual information and a description could be possibilities, but keep it simple.",
+              "type": "string"
+            },
+            {
+              "id": "b8c30664-0b6d-4321-a5e4-dfb5cf32603b",
+              "name": "sessionId",
+              "value": "={{ $json.body.userId?.replaceAll('-','') || '' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1200,
+        -224
+      ],
+      "id": "46856a26-7462-4555-bb38-60ca4fa5be5a",
+      "name": "Build chat request"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "task-enhancement",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -1424,
+        -224
+      ],
+      "id": "50cd596f-7466-47ff-a7cf-85f2e44e77fc",
+      "name": "OnTaskCreation",
+      "webhookId": "task-enhancement-webhook"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wa-message",
+        "responseMode": "lastNode",
+        "responseData": "allEntries",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -1424,
+        -704
+      ],
+      "id": "67d9bcf8-6c10-4dc8-9415-92f2787e4904",
+      "name": "OnTaskWaMessage",
+      "webhookId": "task-enhancement-webhook"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4e699cf6-fa23-4be2-a473-d8035b8111d7",
+              "name": "output",
+              "value": "={{ $json.body.message }}",
+              "type": "string"
+            },
+            {
+              "id": "b8c30664-0b6d-4321-a5e4-dfb5cf32603b",
+              "name": "sessionId",
+              "value": "={{ $json.body.from || '' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1200,
+        -704
+      ],
+      "id": "c25c2ee6-ebe7-4efd-92f4-655e5997df41",
+      "name": "MapWaMsg"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "f0187fff-5f4f-42b5-82d8-5e236eedc9d5",
+              "leftValue": "={{ ($json.output.match(/^###.*/gm) || []).length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.1,
+      "position": [
+        -1008,
+        -704
+      ],
+      "id": "aa2977da-40a1-439e-b8f8-a8ed4b4caf2a",
+      "name": "Does WA message is command?"
+    },
+    {
+      "parameters": {
+        "mode": "delete",
+        "deleteMode": "all"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -272,
+        -704
+      ],
+      "id": "7cfedbeb-7901-4149-a9ff-10405f7317a8",
+      "name": "Remove Memories"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "f0187fff-5f4f-42b5-82d8-5e236eedc9d5",
+              "leftValue": "={{ $json.output.isAForgetCommand }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.1,
+      "position": [
+        -640,
+        -688
+      ],
+      "id": "16ce3f2b-7fbc-4758-a296-61fe58942d26",
+      "name": "Did user asked us to forget?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4e699cf6-fa23-4be2-a473-d8035b8111d7",
+              "name": "output",
+              "value": "=",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -784,
+        -864
+      ],
+      "id": "8aa2fb88-139f-4e3d-8d41-975b53a9fd97",
+      "name": "DoNothing"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Map to output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if email exists": {
+      "main": [
+        [
+          {
+            "node": "Check if user intention is defined",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Does user input contains an email?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Task Enhancement Agent",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Insert message",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Get messages",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Remove Memories",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Todos Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Task Enhancement Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Todo Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Task Enhancement Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Does user input contains an email?": {
+      "main": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ask for email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map to output": {
+      "main": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information Extractor": {
+      "main": [
+        [
+          {
+            "node": "Did user asked us to forget?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert message": {
+      "main": [
+        [
+          {
+            "node": "Get messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get messages": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Check if email exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if user intention is defined": {
+      "main": [
+        [
+          {
+            "node": "Task Enhancement Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ask for intention",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Pro": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Task Enhancement Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Task Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Task Enhancement Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build chat request": {
+      "main": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OnTaskCreation": {
+      "main": [
+        [
+          {
+            "node": "Build chat request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OnTaskWaMessage": {
+      "main": [
+        [
+          {
+            "node": "MapWaMsg",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MapWaMsg": {
+      "main": [
+        [
+          {
+            "node": "Does WA message is command?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Does WA message is command?": {
+      "main": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "DoNothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Did user asked us to forget?": {
+      "main": [
+        [
+          {
+            "node": "Remove Memories",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Insert message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Memories": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "d24ef8a5-0465-4427-8361-ae7735843b4c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b63204b54845ffea0048a514143fcdde6c905bdeae80a14e6e4bd988c1e40aed"
+  },
+  "id": "e2JMLSnbz1nCeGC6",
+  "tags": []
+}
