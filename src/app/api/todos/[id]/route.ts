@@ -14,7 +14,7 @@ export async function PATCH(
 
     // First, find the user by email
     const { data: user, error: userError } = await supabase
-      .from('users')  
+      .from('users')
       .select('id')
       .eq('email', userEmail)
       .single()
@@ -55,6 +55,7 @@ export async function PATCH(
       .from('todos')
       .update({
         ...updates,
+        is_completed: updates.is_completed?.trim() === 'true',
         updated_at: new Date().toISOString()
       })
       .eq('id', id)
