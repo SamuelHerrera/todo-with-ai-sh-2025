@@ -55,7 +55,7 @@ export async function PATCH(
       .from('todos')
       .update({
         ...updates,
-        is_completed: updates.is_completed?.trim() === 'true',
+        is_completed: `${updates.is_completed}`?.trim() === 'true',
         updated_at: new Date().toISOString()
       })
       .eq('id', id)
