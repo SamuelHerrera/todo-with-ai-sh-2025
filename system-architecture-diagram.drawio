@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram name="Todo App Architecture" id="architecture">
-        <mxGraphModel dx="1378" dy="663" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+        <mxGraphModel dx="1602" dy="866" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -19,7 +19,7 @@
                 <mxCell id="task-components" value="Components&lt;br&gt;&lt;span style=&quot;color: rgb(63, 63, 63);&quot;&gt;• App&lt;/span&gt;&lt;br&gt;&lt;div&gt;• TaskList&lt;br&gt;• TaskItem&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
                     <mxGeometry x="220" y="70" width="120" height="90" as="geometry"/>
                 </mxCell>
-                <mxCell id="8" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;dashed=1;strokeColor=#B3B3B3;strokeWidth=2;" edge="1" parent="1" source="hooks" target="services">
+                <mxCell id="8" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;dashed=1;strokeColor=#B3B3B3;strokeWidth=2;" parent="1" source="hooks" target="services" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <Array as="points">
                             <mxPoint x="130" y="274"/>
@@ -178,27 +178,28 @@
                         <mxPoint x="960" y="750" as="sourcePoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="3" value="Information Extractor&lt;br&gt;• AI-powered agent to fill task parameters" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+                <mxCell id="3" value="Information Extractor&lt;br&gt;• AI-powered agent to fill task parameters" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
                     <mxGeometry x="60" y="530" width="220" height="50" as="geometry"/>
                 </mxCell>
-                <mxCell id="7" value="AI Processing" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#9900ff;strokeWidth=2;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="task-enhancement" target="vercel">
+                <mxCell id="7" value="AI Processing" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#9900ff;strokeWidth=2;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="task-enhancement" target="openai-external" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <mxPoint x="290" y="565" as="sourcePoint"/>
                         <mxPoint x="880" y="570" as="targetPoint"/>
                         <Array as="points">
                             <mxPoint x="300" y="612"/>
                             <mxPoint x="300" y="570"/>
-                            <mxPoint x="904" y="570"/>
+                            <mxPoint x="750" y="570"/>
+                            <mxPoint x="750" y="552"/>
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="11" value="Message D&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212));&quot;&gt;elivery&lt;/span&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#00cc00;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="webhook-service" target="whatsapp-external">
+                <mxCell id="11" value="Message D&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212));&quot;&gt;elivery&lt;/span&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#00cc00;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" parent="1" source="webhook-service" target="whatsapp-external" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <mxPoint x="855.25" y="813" as="sourcePoint"/>
                         <mxPoint x="1064.25" y="780" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="13" value="Samuel Herrera, Aug 2025" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+                <mxCell id="13" value="Samuel Herrera, Aug 2025" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" parent="1" vertex="1">
                     <mxGeometry x="670" y="64" width="222.5" height="20" as="geometry"/>
                 </mxCell>
             </root>
