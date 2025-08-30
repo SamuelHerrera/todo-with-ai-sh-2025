@@ -14,9 +14,8 @@ Core Features:
 - Create API to interact with backend
 - Store in Supabase (accessed in backend)
 
-
-
 Part 2 – Chatbot Enhancement
+
 Extend your app with a chatbot interface:
 - Integrate with N8N (mandatory)
 - Chatbot connects with Supabase (via our own API)
@@ -24,5 +23,5 @@ Extend your app with a chatbot interface:
     - Call an AI to enhance the title like make it clearer
     - Break taks it into steps (if possible)
     - Enrich the description it with relevant info (like comming from a search)
-- Add WhatsApp integration (Evolution API or Baileys WA) 
-    - Use a filter so only messages with #to-do list comming from whatsapp trigger the bot
+- Add WhatsApp integration (Baileys WA) 
+    - Use a filter so only messages with ### comming from whatsapp trigger the bot
